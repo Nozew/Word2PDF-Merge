@@ -100,19 +100,30 @@ class PDFProcessor:
     def merge_pdfs(self):
         print(f"{UI.YELLOW}[2/2] PDF dosyaları birleştiriliyor...{UI.RESET}")
 
+        # Önce output klasörüne bak
+        current_dir = self.output_path
         pdfs = [f for f in os.listdir(self.output_path)
                 if f.lower().endswith(".pdf") and f != "_FINAL_REPORT.pdf"]
 
+        # Eğer output boşsa ana klasöre bak
         if not pdfs:
-            print(f"{UI.RED}[!] Birleştirilecek dosya bulunamadı.{UI.RESET}")
-            return
+            current_dir = self.base_path
+            pdfs = [f for f in os.listdir(self.base_path)
+                    if f.lower().endswith(".pdf") and f != "_FINAL_REPORT.pdf"]
 
+            if not pdfs:
+                print(f"{UI.RED}[!] Birleştirilecek dosya bulunamadı.{UI.RESET}")
+                return
+
+        # Sıralama ve Birleştirme
         pdfs.sort(key=self._natural_sort)
         merger = PdfMerger()
 
         for pdf in pdfs:
             print(f"  + Listeye eklendi: {pdf}")
-            merger.append(os.path.join(self.output_path, pdf))
+            # Dosyayı bulduğu klasörden (current_dir) çekmesini sağlıyoruz
+            full_path = os.path.join(current_dir, pdf)
+            merger.append(full_path)
 
         final_out = os.path.join(self.output_path, "_FINAL_REPORT.pdf")
         merger.write(final_out)
